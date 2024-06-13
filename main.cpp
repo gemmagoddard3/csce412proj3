@@ -5,27 +5,23 @@
 #include <chrono>
 #include <random>
 #include "Request.h"
+#include "LoadBalancer.h"
 #include <queue>
 #include <thread>
-
 using namespace std;
 using namespace std::chrono;
 
-void createNewRequest(queue<Request *> &q)
-{
-    Request *req = new Request();
-    q.push(req);
-}
 
 void fillQueue(queue<Request *> &q, int numServers)
 {
-    for (int i = 0; i < numServers * 100; i++)
+    for (int i = 0; i < numServers * 10; i++)
     {
-        createNewRequest(q);
+        Request *req = new Request();
+        q.push(req);
     }
 }
 
-void randomlyAddRequest(queue<Request *> &q)
+void randomlyAddRequest(LoadBalancer * lb)
 {
     while (true)
     {
@@ -37,10 +33,9 @@ void randomlyAddRequest(queue<Request *> &q)
         this_thread::sleep_for(chrono::seconds(dist(mt)));
         auto end = chrono::steady_clock::now();
         auto duration = chrono::duration_cast<chrono::seconds>(end - start);
-
-        // Output the elapsed time (optional)
         cout << "Elapsed time: " << duration.count() << " seconds\n";
-        createNewRequest(q);
+        Request *req = new Request();
+        lb->addRequest(req);
     }
 }
 
@@ -82,9 +77,13 @@ int main(int argc, char *argv[])
     queue<Request *> requestQueue;
 
     fillQueue(requestQueue, 10);
-    randomlyAddRequest(requestQueue);
 
-    this_thread::sleep_for(seconds(15));
+    LoadBalancer * lb = new LoadBalancer(requestQueue, numServers);
+    // randomlyAddRequest(lb);
+    lb->processRequests();
+    this_thread::sleep_for(seconds(numClockCycles));
+
+
     // printQueue(requestQueue);
 
     // vector<Request*> tasks;

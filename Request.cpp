@@ -7,7 +7,7 @@ Request::Request() {
     // Generating random ip addresses
     random_device rd;
     mt19937 mt(rd());
-    uniform_int_distribution<int> dist(0, 255);
+    uniform_int_distribution<int> dist(100, 255);
     for(int i = 0; i < 2; i++){
         ipIn += to_string(dist(mt)) + ".";
         ipOut += to_string(dist(mt)) + ".";
@@ -16,10 +16,10 @@ Request::Request() {
     ipOut += "0.1";
 
     // Generating a random time to run 
-    uniform_int_distribution<int> distTime(0, 200);
+    uniform_int_distribution<int> distTime(1, 10);
     time = distTime(mt);
 
-    cout << "Adding new request:" << ipIn << endl;
+    cout << "Adding new request: " << ipIn << " time to process " << time << " sec" << endl;
 }
 
 string Request::getIpIn() const
