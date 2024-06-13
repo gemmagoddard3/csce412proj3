@@ -14,7 +14,7 @@ using namespace std::chrono;
 
 void fillQueue(queue<Request *> &q, int numServers)
 {
-    for (int i = 0; i < numServers * 10; i++)
+    for (int i = 0; i < numServers; i++)
     {
         Request *req = new Request();
         q.push(req);

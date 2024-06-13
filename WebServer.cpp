@@ -27,7 +27,6 @@ void WebServer::addRequest(Request * req){
 
 void WebServer::processRequests(){
     while(true){
-        // lock_guard<mutex> lock(mux);
         // Processing next request
         if (!serverQueue.empty()){
              Request * elem = serverQueue.front();
@@ -38,8 +37,8 @@ void WebServer::processRequests(){
         }
         // No requests, wait 1 second to check again 
         else{
-            cout << "No requests in server queue" << endl;
-            this_thread::sleep_for(chrono::seconds(1));
+            // cout << "No requests in " << serverID << endl;
+            this_thread::sleep_for(chrono::seconds(2));
         }
     }
 }

@@ -23,14 +23,16 @@ LoadBalancer::LoadBalancer(queue<Request *> rq, int numServ)
 
     for (int i = 0; i < numServer; i++)
     {
-        std::thread serverThread(&WebServer::processRequests, webServers[i]);
+        thread serverThread(&WebServer::processRequests, webServers[i]);
         serverThread.detach(); // Detach thread to run independently
     }
+
+    thread addRequestThread(&LoadBalancer::randomlyAddRequest, this);
+    addRequestThread.detach(); // Detach the thread to run independently
 }
 
-void LoadBalancer::addRequest(Request *req)
-{
-    // cout << "Adding " << req->getIpIn() << " to the Queue" << endl;
+void LoadBalancer::addRequest(Request *req){
+    cout << "Adding " << req->getIpIn() << " to the Queue" << endl;
     requestQueue.push(req);
     processRequests();
 }
@@ -67,5 +69,23 @@ void LoadBalancer::processRequests()
             webServers.at(nextServer)->addRequest(req);
             setNextServer();
         }
+    }
+}
+
+void LoadBalancer::randomlyAddRequest()
+{
+    while (true)
+    {
+        random_device rd;
+        mt19937 mt(rd());
+        uniform_int_distribution<int> dist(5, 10);
+
+        auto start = chrono::steady_clock::now();
+        this_thread::sleep_for(chrono::seconds(dist(mt)));
+        auto end = chrono::steady_clock::now();
+        auto duration = chrono::duration_cast<chrono::seconds>(end - start);
+        cout << "Elapsed time: " << duration.count() << " seconds\n";
+        Request *req = new Request();
+        addRequest(req);
     }
 }

@@ -22,6 +22,7 @@ public:
     void setNextServer();
     Request *getNextInQueue();
     void processRequests();
+    void randomlyAddRequest();
 };
 
 #endif
