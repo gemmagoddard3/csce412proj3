@@ -47,7 +47,7 @@ void WebServer::processRequests(LoadBalancer * lb){
             // request processed, go to the next on
             cout << "Server " << serverID << " processed request " << req->getIpIn()  << " [" << startTime << "," << endTime<< "] - (" << req->getTime()  << ")";
             if(!lb->getStatus().at(serverID-1)){
-                cout << "- turning off" << endl;
+                cout << "- shutting down server" << endl;
             }
             else{
                 cout << endl;

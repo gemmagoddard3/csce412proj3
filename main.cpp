@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     this_thread::sleep_for(chrono::seconds(2));
 
     int end = lb->getRequestCount();
-    cout << "Done running load balancer" << endl;
+    cout << "Time over - done running load balancer" << endl;
     cout << "Started with " << start << " elements in the queue" << endl;
     cout << "Ended with " << end << " elements in the queue" << endl;
 

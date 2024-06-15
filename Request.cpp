@@ -16,7 +16,7 @@ Request::Request() {
     ipOut += to_string(dist(mt));
 
     // Generating a random time to run 
-    uniform_int_distribution<int> distTime(5, 300);
+    uniform_int_distribution<int> distTime(5, 200);
     time = distTime(mt);
 }
 
