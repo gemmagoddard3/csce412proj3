@@ -11,6 +11,12 @@
 
 using namespace std;
 
+/**
+ * @brief Fills a queue with a specified number of randomly generated requests.
+ *
+ * @param q Reference to the queue to be filled.
+ * @param numRequests Number of requests to generate and add to the queue.
+ */
 void fillQueue(queue<Request *> &q, int numRequests)
 {
     for (int i = 0; i < numRequests; ++i)
@@ -20,6 +26,11 @@ void fillQueue(queue<Request *> &q, int numRequests)
     }
 }
 
+/**
+ * @brief Generates and adds requests randomly to the load balancer at intervals.
+ *
+ * @param lb Pointer to the LoadBalancer instance.
+ */
 void randomlyAddRequest(LoadBalancer *lb)
 {
     random_device rd;
@@ -41,11 +52,21 @@ void randomlyAddRequest(LoadBalancer *lb)
     }
 }
 
+/**
+ * @brief Main function to simulate the load balancing process.
+ *
+ * This function initializes web servers, a load balancer, and threads for server processing and random request addition.
+ *
+ * @param argc Number of command line arguments.
+ * @param argv Array of command line arguments.
+ * @return 0 if successful, 1 if there is an error in command line arguments.
+ */
 int main(int argc, char *argv[])
 {
     int numServers = 10;
     int numClockCycles = 10000;
 
+    // Parsing command line options
     int opt;
     while ((opt = getopt(argc, argv, "s:c:")) != -1)
     {
@@ -63,10 +84,11 @@ int main(int argc, char *argv[])
         }
     }
 
+    // Filling the initial request queue
     queue<Request *> requestQueue;
-    fillQueue(requestQueue, numServers*100);
+    fillQueue(requestQueue, numServers * 100);
 
-    // creating each WebServer
+    // Creating each WebServer and initializing server status
     vector<WebServer *> webServers;
     vector<bool> serverStatus;
     for (int i = 0; i < numServers; ++i)
@@ -76,11 +98,11 @@ int main(int argc, char *argv[])
     }
 
     int start = requestQueue.size();
-    // creating a new load balancer
-    LoadBalancer *lb = new LoadBalancer(requestQueue, webServers, serverStatus, numClockCycles);
-    
 
-    // threads for web servers to process requests
+    // Creating a new LoadBalancer
+    LoadBalancer *lb = new LoadBalancer(requestQueue, webServers, serverStatus, numClockCycles);
+
+    // Threads for web servers to process requests
     vector<thread> serverThreads;
     for (int i = 0; i < numServers; ++i)
     {
@@ -88,12 +110,16 @@ int main(int argc, char *argv[])
         server.detach();
     }
 
-    // thread in the background for randomly adding requests to the load balancer
+    // Thread in the background for randomly adding requests to the load balancer
     thread random(randomlyAddRequest, lb);
 
+    // Start processing requests in the load balancer
     lb->processRequests();
+
+    // Wait for the random request addition thread to finish
     random.join();
 
+    // Wait briefly before cleaning up
     this_thread::sleep_for(chrono::seconds(2));
 
     int end = lb->getRequestCount();
@@ -101,6 +127,7 @@ int main(int argc, char *argv[])
     cout << "Started with " << start << " elements in the queue" << endl;
     cout << "Ended with " << end << " elements in the queue" << endl;
 
+    // Clean up resources
     delete lb;
     for (auto server : webServers)
     {
