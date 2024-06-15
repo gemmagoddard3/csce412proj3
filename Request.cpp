@@ -12,14 +12,12 @@ Request::Request() {
         ipIn += to_string(dist(mt)) + ".";
         ipOut += to_string(dist(mt)) + ".";
     }
-    ipIn += "0.1";
-    ipOut += "0.1";
+    ipIn += to_string(dist(mt));
+    ipOut += to_string(dist(mt));
 
     // Generating a random time to run 
-    uniform_int_distribution<int> distTime(1, 10);
+    uniform_int_distribution<int> distTime(5, 300);
     time = distTime(mt);
-
-    cout << "Adding new request: " << ipIn << " time to process " << time << " sec" << endl;
 }
 
 string Request::getIpIn() const

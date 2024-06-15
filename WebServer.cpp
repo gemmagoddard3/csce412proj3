@@ -1,5 +1,6 @@
 #include "WebServer.h"
 #include "Request.h"
+#include "LoadBalancer.h"
 
 #include <string>
 #include <unistd.h>
@@ -7,8 +8,6 @@
 #include <vector>
 #include <chrono>
 #include <random>
-#include "Request.h"
-#include "LoadBalancer.h"
 #include <queue>
 #include <thread>
 
@@ -20,25 +19,31 @@ WebServer::WebServer(int id){
 }
 
 void WebServer::addRequest(Request * req){
-    // lock_guard<mutex> lock(mux);
     cout << "Adding " << req->getIpIn() << " to server " << serverID << endl;
     serverQueue.push(req);
+    // cout << serverQueue.size() << endl;
 }
 
-void WebServer::processRequests(){
-    while(true){
-        // Processing next request
+int WebServer::numInQueue(){
+    return serverQueue.size();
+}
+
+void WebServer::processRequests(LoadBalancer * lb){
+    while(lb->getTime() < lb->getEndTime()){
+        // if there is a request to process
         if (!serverQueue.empty()){
-             Request * elem = serverQueue.front();
+            // get the next request
+            Request * req = serverQueue.front();
             serverQueue.pop();
-            cout << "Server " << serverID << "processing request " << elem->getIpIn() << " for " << elem->getTime() << " seconds." << endl;
-            this_thread::sleep_for(chrono::seconds(elem->getTime()));
-            cout << "Server " << serverID << ": " << elem->getIpIn() << " finished." << endl;
-        }
-        // No requests, wait 1 second to check again 
-        else{
-            // cout << "No requests in " << serverID << endl;
-            this_thread::sleep_for(chrono::seconds(2));
+            cout << "Server " << serverID << " processing request " << req->getIpIn() << endl;
+
+            // wait the elapsed time 
+            int startTime = lb->getTime();
+            while ((lb->getTime() - startTime) > req->getTime()){
+                cout << "time ticking";
+            }
+            // request processed, go to the next on
+            cout << "At " << lb->getTime() << " " << serverID << " processed " << req->getIpIn() << endl;
         }
     }
 }

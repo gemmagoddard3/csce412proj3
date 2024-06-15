@@ -13,16 +13,20 @@ class LoadBalancer
 private:
     queue<Request *> requestQueue;
     vector<WebServer *> webServers;
-    int nextServer;
+    vector<bool> serverStatus;
     int numServer;
+    int time;
+    int endTime;
 
 public:
-    LoadBalancer(queue<Request *> rq, int numServ);
+    LoadBalancer(queue<Request *> rq, vector<WebServer *> ws, vector<bool> ss, int et);
     void addRequest(Request *req);
-    void setNextServer();
+    int getNextServer();
     Request *getNextInQueue();
     void processRequests();
-    void randomlyAddRequest();
+    int getTime();
+    int getEndTime();
+    void increaseTime();
 };
 
 #endif

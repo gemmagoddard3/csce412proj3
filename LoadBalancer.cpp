@@ -10,34 +10,24 @@
 #include <queue>
 #include <thread>
 
-LoadBalancer::LoadBalancer(queue<Request *> rq, int numServ)
+int LOAD = 2;
+
+LoadBalancer::LoadBalancer(queue<Request *> rq, vector<WebServer *> ws, vector<bool> ss, int et)
 {
-    requestQueue = rq;
-    numServer = numServ;
-    nextServer = 1;
-
-    for (int i = 0; i < numServer; i++)
-    {
-        webServers.push_back(new WebServer(i + 1));
-    }
-
-    for (int i = 0; i < numServer; i++)
-    {
-        thread serverThread(&WebServer::processRequests, webServers[i]);
-        serverThread.detach(); // Detach thread to run independently
-    }
-
-    thread addRequestThread(&LoadBalancer::randomlyAddRequest, this);
-    addRequestThread.detach(); // Detach the thread to run independently
+    requestQueue = rq; // queue of all reques
+    webServers = ws;   // vector of the web servers
+    serverStatus = ss; // vector of each server status
+    time = 0;          // keeping track of time
+    endTime = et;
 }
 
-void LoadBalancer::addRequest(Request *req){
-    cout << "Adding " << req->getIpIn() << " to the Queue" << endl;
+void LoadBalancer::addRequest(Request *req) // adds a request to the queue
+{
+    cout << "Adding " << req->getIpIn() << " to the request queue" << endl;
     requestQueue.push(req);
-    processRequests();
 }
 
-Request *LoadBalancer::getNextInQueue()
+Request *LoadBalancer::getNextInQueue() // returns next in queue (if any)
 {
     if (!requestQueue.empty())
     {
@@ -51,41 +41,71 @@ Request *LoadBalancer::getNextInQueue()
     }
 }
 
-void LoadBalancer::setNextServer()
+int LoadBalancer::getNextServer() // getting which server to add next request to
 {
-    nextServer = (nextServer + 1) % numServer;
+    int minServerIndex = 0;
+
+    // check if there is a running server already that we can send the request to
+    for (int i = 0; i < webServers.size(); i++)
+    {
+
+        // if there is a current web server allocated that can maintain the load, add it to that
+        if (serverStatus.at(i) && (webServers.at(i)->numInQueue() < LOAD))
+        {
+            return i;
+        }
+
+        // finding the web server with smallest num in queue
+        if (webServers.at(i)->numInQueue() < webServers.at(minServerIndex)->numInQueue())
+        {
+            minServerIndex = i;
+        }
+    }
+
+    // we need to allocate a new server to help the load
+    for (int i = 0; i < webServers.size(); i++)
+    {
+
+        // if we find a server that isnt running, make it active and send the request there
+        if (!serverStatus.at(i))
+        {
+            serverStatus.at(i) = true;
+            return i;
+        }
+    }
+
+    // if all are full and above the load, assign to the server with the smallest number of requests
+    return minServerIndex;
 }
 
 void LoadBalancer::processRequests()
 {
-    while (!requestQueue.empty())
+    while (time < endTime)
     {
-        // lock_guard<mutex> lock(mux);
-        // Processing next request
+        increaseTime();
+        // cout << time << endl;
         if (!requestQueue.empty())
         {
             Request *req = requestQueue.front();
             requestQueue.pop();
+            int nextServer = getNextServer();
+            cout << "Before " << webServers.at(nextServer)->numInQueue() << endl;
             webServers.at(nextServer)->addRequest(req);
-            setNextServer();
+            cout << "After " << webServers.at(nextServer)->numInQueue() << endl;
         }
     }
 }
 
-void LoadBalancer::randomlyAddRequest()
+int LoadBalancer::getTime()
 {
-    while (true)
-    {
-        random_device rd;
-        mt19937 mt(rd());
-        uniform_int_distribution<int> dist(5, 10);
+    return time;
+}
 
-        auto start = chrono::steady_clock::now();
-        this_thread::sleep_for(chrono::seconds(dist(mt)));
-        auto end = chrono::steady_clock::now();
-        auto duration = chrono::duration_cast<chrono::seconds>(end - start);
-        cout << "Elapsed time: " << duration.count() << " seconds\n";
-        Request *req = new Request();
-        addRequest(req);
-    }
+void LoadBalancer::increaseTime()
+{
+    time++;
+}
+
+int LoadBalancer::getEndTime(){
+    return endTime;
 }

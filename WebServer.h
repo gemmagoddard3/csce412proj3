@@ -6,6 +6,9 @@
 #include <chrono>
 #include <mutex>
 #include "Request.h"
+
+class LoadBalancer; 
+
 using namespace std;
 
 class WebServer
@@ -13,12 +16,12 @@ class WebServer
 private:
     queue<Request *> serverQueue;
     int serverID;
-    mutex mux;
 
 public:
     WebServer(int id);
     void addRequest(Request * req);
-    void processRequests();
+    void processRequests(LoadBalancer * lb);
+    int numInQueue();
 };
 
 #endif
