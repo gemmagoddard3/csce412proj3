@@ -3,7 +3,7 @@
 #include <random>
 #include <queue>
 #include <thread>
-#include <unistd.h>  // for getopt
+#include <unistd.h> // for getopt
 
 #include "Request.h"
 #include "LoadBalancer.h"
@@ -11,19 +11,23 @@
 
 using namespace std;
 
-void fillQueue(queue<Request *> &q, int numRequests) {
-    for (int i = 0; i < numRequests; ++i) {
+void fillQueue(queue<Request *> &q, int numRequests)
+{
+    for (int i = 0; i < numRequests; ++i)
+    {
         Request *req = new Request();
         q.push(req);
     }
 }
 
-void randomlyAddRequest(LoadBalancer *lb) {
+void randomlyAddRequest(LoadBalancer *lb)
+{
     random_device rd;
     mt19937 mt(rd());
-    uniform_int_distribution<int> dist(1, 100);
+    uniform_int_distribution<int> dist(500, 1000);
 
-    while (true) {
+    while (!lb->isDone())
+    {
         auto start = chrono::steady_clock::now();
         this_thread::sleep_for(chrono::milliseconds(dist(mt)));
         auto end = chrono::steady_clock::now();
@@ -32,62 +36,74 @@ void randomlyAddRequest(LoadBalancer *lb) {
         Request *req = new Request();
         cout << "Randomly adding request with IP address " << req->getIpIn()
              << " after " << duration.count() << " milliseconds." << endl;
-        
+
         lb->addRequest(req);
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     int numServers = 10;
     int numClockCycles = 10000;
 
     int opt;
-    while ((opt = getopt(argc, argv, "s:c:")) != -1) {
-        switch (opt) {
-            case 's':
-                numServers = stoi(optarg);
-                break;
-            case 'c':
-                numClockCycles = stoi(optarg);
-                break;
-            default:
-                cerr << "Usage: " << argv[0] << " -s <numServers> -c <time>" << endl;
-                return 1;
+    while ((opt = getopt(argc, argv, "s:c:")) != -1)
+    {
+        switch (opt)
+        {
+        case 's':
+            numServers = stoi(optarg);
+            break;
+        case 'c':
+            numClockCycles = stoi(optarg);
+            break;
+        default:
+            cerr << "Usage: " << argv[0] << " -s <numServers> -c <time>" << endl;
+            return 1;
         }
     }
 
     queue<Request *> requestQueue;
-    fillQueue(requestQueue, 10);
-
-    vector<WebServer *> webServers;
-    vector<bool> serverStatus;
-
-    cout << "Starting with " << requestQueue.size() << " elements in the queue" << endl;
+    fillQueue(requestQueue, numServers*100);
 
     // creating each WebServer
-    for (int i = 0; i < numServers; ++i) {
+    vector<WebServer *> webServers;
+    vector<bool> serverStatus;
+    for (int i = 0; i < numServers; ++i)
+    {
         webServers.push_back(new WebServer(i + 1));
         serverStatus.push_back(false);
     }
 
+    int start = requestQueue.size();
     // creating a new load balancer
     LoadBalancer *lb = new LoadBalancer(requestQueue, webServers, serverStatus, numClockCycles);
+    
 
-    //  // creating threads for each WebServer
-    for (int i = 0; i < numServers; ++i) {
-        thread serverThread(&WebServer::processRequests, webServers.at(i), lb);
-        serverThread.detach();  // Detach thread to let it run independently
+    // threads for web servers to process requests
+    vector<thread> serverThreads;
+    for (int i = 0; i < numServers; ++i)
+    {
+        thread server(&WebServer::processRequests, webServers[i], lb);
+        server.detach();
     }
 
     // thread in the background for randomly adding requests to the load balancer
-    thread addRequestThread(randomlyAddRequest, lb);
-    addRequestThread.detach();
+    thread random(randomlyAddRequest, lb);
 
     lb->processRequests();
+    random.join();
 
-    // Clean up
+    this_thread::sleep_for(chrono::seconds(2));
+
+    int end = lb->getRequestCount();
+    cout << "Done running load balancer" << endl;
+    cout << "Started with " << start << " elements in the queue" << endl;
+    cout << "Ended with " << end << " elements in the queue" << endl;
+
     delete lb;
-    for (auto server : webServers) {
+    for (auto server : webServers)
+    {
         delete server;
     }
 

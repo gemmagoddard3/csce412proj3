@@ -21,29 +21,37 @@ WebServer::WebServer(int id){
 void WebServer::addRequest(Request * req){
     cout << "Adding " << req->getIpIn() << " to server " << serverID << endl;
     serverQueue.push(req);
-    // cout << serverQueue.size() << endl;
 }
 
 int WebServer::numInQueue(){
     return serverQueue.size();
 }
 
+int WebServer::getId(){
+    return serverID;
+}
+
 void WebServer::processRequests(LoadBalancer * lb){
-    while(lb->getTime() < lb->getEndTime()){
+    while(!lb->isDone()){
         // if there is a request to process
         if (!serverQueue.empty()){
             // get the next request
             Request * req = serverQueue.front();
             serverQueue.pop();
-            cout << "Server " << serverID << " processing request " << req->getIpIn() << endl;
-
             // wait the elapsed time 
             int startTime = lb->getTime();
-            while ((lb->getTime() - startTime) > req->getTime()){
-                cout << "time ticking";
+            // cout << "Server " << serverID << " started processing request " << req->getIpIn() << " at time " << startTime << " (" << req->getTime() << ")" << endl;
+            while ((lb->getTime() - startTime) < req->getTime()){
             }
+            int endTime = lb->getTime();
             // request processed, go to the next on
-            cout << "At " << lb->getTime() << " " << serverID << " processed " << req->getIpIn() << endl;
+            cout << "Server " << serverID << " processed request " << req->getIpIn()  << " [" << startTime << "," << endTime<< "] - (" << req->getTime()  << ")";
+            if(!lb->getStatus().at(serverID-1)){
+                cout << "- turning off" << endl;
+            }
+            else{
+                cout << endl;
+            }
         }
     }
 }

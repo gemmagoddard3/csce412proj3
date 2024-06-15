@@ -10,7 +10,7 @@
 #include <queue>
 #include <thread>
 
-int LOAD = 2;
+int LOAD = 50;
 
 LoadBalancer::LoadBalancer(queue<Request *> rq, vector<WebServer *> ws, vector<bool> ss, int et)
 {
@@ -19,6 +19,7 @@ LoadBalancer::LoadBalancer(queue<Request *> rq, vector<WebServer *> ws, vector<b
     serverStatus = ss; // vector of each server status
     time = 0;          // keeping track of time
     endTime = et;
+    bool done = false;
 }
 
 void LoadBalancer::addRequest(Request *req) // adds a request to the queue
@@ -41,14 +42,34 @@ Request *LoadBalancer::getNextInQueue() // returns next in queue (if any)
     }
 }
 
+void LoadBalancer::getActiveServers(){
+    cout << "Active Servers ";
+    for(int i = 0; i < serverStatus.size(); i++){
+        if(serverStatus.at(i)){
+            cout << webServers.at(i)->getId() << " ";
+        }
+    }
+    cout << endl;
+}
+
 int LoadBalancer::getNextServer() // getting which server to add next request to
 {
     int minServerIndex = 0;
+    int minLoad = LOAD * 0.30;
 
-    // check if there is a running server already that we can send the request to
     for (int i = 0; i < webServers.size(); i++)
     {
-
+        // turn off servers that have low usage (below 10% of the load size)
+        if(serverStatus.at(i) && webServers.at(i)->numInQueue()< minLoad){
+            cout << "Turning off server " << webServers.at(i)->getId() << endl;
+            serverStatus.at(i) = false;
+            getActiveServers();
+        }
+    }
+ 
+    // check if there is a running server already that we can send the request to that wont be too much
+    for (int i = 0; i < webServers.size(); i++)
+    {
         // if there is a current web server allocated that can maintain the load, add it to that
         if (serverStatus.at(i) && (webServers.at(i)->numInQueue() < LOAD))
         {
@@ -65,10 +86,10 @@ int LoadBalancer::getNextServer() // getting which server to add next request to
     // we need to allocate a new server to help the load
     for (int i = 0; i < webServers.size(); i++)
     {
-
         // if we find a server that isnt running, make it active and send the request there
         if (!serverStatus.at(i))
         {
+            // cout << "Turning on server " << webServers.at(i)->getId() << endl;
             serverStatus.at(i) = true;
             return i;
         }
@@ -82,23 +103,27 @@ void LoadBalancer::processRequests()
 {
     while (time < endTime)
     {
-        increaseTime();
-        // cout << time << endl;
+        
         if (!requestQueue.empty())
         {
             Request *req = requestQueue.front();
             requestQueue.pop();
             int nextServer = getNextServer();
-            cout << "Before " << webServers.at(nextServer)->numInQueue() << endl;
             webServers.at(nextServer)->addRequest(req);
-            cout << "After " << webServers.at(nextServer)->numInQueue() << endl;
         }
+        this_thread::sleep_for(chrono::milliseconds(2));
+        increaseTime();
     }
+    done = true;
 }
 
 int LoadBalancer::getTime()
 {
     return time;
+}
+
+bool LoadBalancer::isDone(){
+    return done;
 }
 
 void LoadBalancer::increaseTime()
@@ -108,4 +133,16 @@ void LoadBalancer::increaseTime()
 
 int LoadBalancer::getEndTime(){
     return endTime;
+}
+
+int LoadBalancer::getRequestCount(){
+    int count = 0;
+    for(int i = 0; i < webServers.size(); i++){
+        count += webServers.at(i)->numInQueue();
+    }
+    return count;
+}
+
+vector<bool> LoadBalancer::getStatus(){
+    return serverStatus;
 }

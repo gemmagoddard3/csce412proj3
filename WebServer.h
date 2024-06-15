@@ -22,6 +22,7 @@ public:
     void addRequest(Request * req);
     void processRequests(LoadBalancer * lb);
     int numInQueue();
+    int getId();
 };
 
 #endif

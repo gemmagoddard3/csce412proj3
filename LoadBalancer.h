@@ -17,6 +17,7 @@ private:
     int numServer;
     int time;
     int endTime;
+    bool done;
 
 public:
     LoadBalancer(queue<Request *> rq, vector<WebServer *> ws, vector<bool> ss, int et);
@@ -27,6 +28,10 @@ public:
     int getTime();
     int getEndTime();
     void increaseTime();
+    bool isDone();
+    int getRequestCount();
+    vector<bool> getStatus();
+    void getActiveServers();
 };
 
 #endif
