@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 
     // Creating a new LoadBalancer
     LoadBalancer *lb = new LoadBalancer(requestQueue, webServers, serverStatus, numClockCycles);
-
+    
     // Threads for web servers to process requests
     vector<thread> serverThreads;
     for (int i = 0; i < numServers; ++i)
@@ -124,8 +124,9 @@ int main(int argc, char *argv[])
 
     int end = lb->getRequestCount();
     cout << "Time over - done running load balancer" << endl;
-    cout << "Started with " << start << " elements in the queue" << endl;
-    cout << "Ended with " << end << " elements in the queue" << endl;
+    cout << "Started with " << (start - lb->getNumInvalidIP()) << " valid requests in the queue" << endl;
+    cout << "Caught " << lb->getNumInvalidIP() << " invalid incoming IP addresses" << endl;
+    cout << "Ended with " << end << " requests in the queue" << endl;
 
     // Clean up resources
     delete lb;

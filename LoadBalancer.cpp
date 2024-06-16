@@ -34,8 +34,15 @@ LoadBalancer::LoadBalancer(queue<Request *> rq, vector<WebServer *> ws, vector<b
  */
 void LoadBalancer::addRequest(Request *req)
 {
-    cout << "Adding " << req->getIpIn() << " to the request queue" << endl;
-    requestQueue.push(req);
+    if (validateIP(req->getIpIn())){
+        cout << "Adding " << req->getIpIn() << " to the request queue" << endl;
+        requestQueue.push(req);
+    }
+    else{
+        cout << "IP address " << req->getIpIn() << " blocked" << endl;
+        numInvalidIP++;
+    }
+    
 }
 
 /**
@@ -210,4 +217,42 @@ void LoadBalancer::getActiveServers()
         }
     }
     cout << endl;
+}
+
+/**
+ * @brief Validates
+ * 
+ * This function validates incoming ip address by blocking ip addresses whose first three numers are greater than 
+ */
+bool LoadBalancer::validateIP(string ip) {
+    stringstream ss(ip);
+    string segment;
+    int segmentCount = 0;
+
+    while (getline(ss, segment, '.')) {
+        // Convert segment to integer
+        int num = stoi(segment);
+
+        // Check the first segment only
+        if (segmentCount == 0) {
+            // Check if the first segment is greater than 240
+            if (num > 200) {
+                return false;
+            }
+        }
+        
+        segmentCount++;
+
+        // Stop after processing the first segment
+        if (segmentCount == 1) {
+            break;
+        }
+    }
+
+    // If the first segment is valid (<= 240)
+    return true;
+}
+
+int LoadBalancer::getNumInvalidIP(){
+    return numInvalidIP;
 }

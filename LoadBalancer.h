@@ -24,6 +24,7 @@ private:
     int time; /**< Current time in the load balancer simulation */
     int endTime; /**< End time of the simulation */
     bool done; /**< Flag indicating if the load balancer has finished processing */
+    int numInvalidIP; /**< Count of invalid incoming IP addresses */
 
 public:
     /**
@@ -58,6 +59,13 @@ public:
      * @return Pointer to the next request in the queue.
      */
     Request *getNextInQueue();
+
+    /**
+     * @brief Retrieves the number of invalid incoming IP addresses caught.
+     * 
+     * @return Number of invalid IP addresses caught.
+     */
+    int getNumInvalidIP();
 
     /**
      * @brief Processes requests in the load balancer until the simulation is complete.
@@ -106,10 +114,18 @@ public:
 
     /**
      * @brief Retrieves the list of active servers.
-     * 
-     * @note This function is not currently implemented in the provided code.
      */
     void getActiveServers();
+
+    /**
+     * @brief Validates an incoming IP address.
+     * 
+     * This function checks if the first segment of the IP address is greater than 240 (if it is its considered invalid).
+     * 
+     * @param ip IP address string to validate (format: "xxx.xxx.xxx").
+     * @return True if the first segment of the IP address is <= 240, false otherwise.
+     */
+    bool validateIP(string ip);
 };
 
 #endif // LOADBALANCER_H
