@@ -3,11 +3,11 @@ CXXFLAGS=-std=c++17
 
 all: balancer
 
-balancer: main.o Request.o LoadBalancer.o WebServer.o
-	$(CXX) $(CXXFLAGS) -o balancer main.o Request.o LoadBalancer.o WebServer.o
+balancer: Driver.o Request.o LoadBalancer.o WebServer.o
+	$(CXX) $(CXXFLAGS) -o balancer Driver.o Request.o LoadBalancer.o WebServer.o
 
-main.o: main.cpp
-	$(CXX) $(CXXFLAGS) -c main.cpp
+Driver.o: Driver.cpp
+	$(CXX) $(CXXFLAGS) -c Driver.cpp
 
 Request.o: Request.cpp
 	$(CXX) $(CXXFLAGS) -c Request.cpp

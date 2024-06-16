@@ -6,6 +6,7 @@
 #include <unistd.h> // for getopt
 
 #include "Request.h"
+#include "Driver.h"
 #include "LoadBalancer.h"
 #include "WebServer.h"
 

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['numinqueue_0',['numInQueue',['../class_web_server.html#a1b3aa24663087719bdaf941c1f792ad9',1,'WebServer']]]
+  ['loadbalancer_0',['LoadBalancer',['../class_load_balancer.html#a173d4232abe149771151b86053df9412',1,'LoadBalancer']]]
 ];
